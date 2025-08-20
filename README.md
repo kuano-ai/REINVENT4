@@ -23,9 +23,9 @@ Requirements
 ------------
 
 REINVENT is being developed on Linux and supports both GPU and CPU.  The Linux
-version is fully validated.  REINVENT on Windows and MacOSX supports
-both GPU and CPU but is only partially tested on these platforms and therefore
-support is limited.
+version is fully validated.  REINVENT on Windows supports GPU and CPU while
+MacOSX supports CPU only, but both platforms are only partially tested and
+therefore support is limited.
 
 The code is written in Python 3 (>= 3.10).  The list of
 dependencies can be found in the repository (see also Installation below).
@@ -61,6 +61,12 @@ Installation
     reinvent --help
     ```
 
+Prior models
+------------
+
+All public prior models can be found on [Zenodo](https://doi.org/10.5281/zenodo.15641296).
+
+
 Basic Usage
 -----------
 
@@ -71,16 +77,13 @@ reinvent -l sampling.log sampling.toml
 
 This writes logging information to the file `sampling.log`.  If you wish to write
 this to the screen, leave out the `-l sampling.log` part. `sampling.toml` is the
-configuration file.  The main user format is [TOML](https://toml.io/en/) as it tends to be more
-use friendly.  JSON can be used too, add `-f json`, but a specialised editor is
-recommended as the format is very sensitive to minor changes.
+configuration file.  The main format is [TOML](https://toml.io/en/) as it tends to be more user friendly.  JSON and YAML are supported too.
 
 Sample configuration files for all run modes are
-located in `configs/toml` in the repository and file paths in these files would need to be
-adjusted to your local installation.  In particular, ready made prior models are
-located in `priors` and you would choose a model and the
+located in `configs/` in the repository. File paths in these files would need to be
+adjusted to your local installation.  You will need to choose a model and the
 appropriate run mode depending on the research problem you are trying to address.
-There is additional information in `configs/toml` in several `*.md` files with
+There is additional documentation in `configs/` in several `*.md` files with
 instructions on how to configure the TOML file.  Internal priors can be referenced with a
 dot notation (see `reinvent/prior_registry.py`).
 
@@ -88,7 +91,7 @@ dot notation (see `reinvent/prior_registry.py`).
 Tutorials / `Jupyter` notebooks
 -------------------------------
 
-Basic instructions can be found in the comments in the config examples in `configs/toml`.
+Basic instructions can be found in the comments in the config examples in `configs/`.
 
 Notebooks are provided in the `notebooks/` directory.  Please note that we
 provide the notebooks in jupytext "light script" format.  To work with the light
@@ -105,17 +108,6 @@ jupytext -o Reinvent_demo.ipynb Reinvent_demo.py
 ```
 
 
-Updating dependencies
----------------------
-
-Update the lock files with [pip-tools](https://pypi.org/project/pip-tools/) (please, do not edit the files manually):
-```shell
-pip-compile --extra-index-url=https://download.pytorch.org/whl/cu121 --extra-index-url=https://pypi.anaconda.org/OpenEye/simple --resolver=backtracking pyproject.toml
-```
-To update a single package, use `pip-compile --upgrade-package somepackage`
-(see the documentation for pip-tools).
-
-
 Scoring Plugins
 ---------------
 
@@ -127,11 +119,17 @@ repository contains a [contrib](https://github.com/MolecularAI/REINVENT4/tree/ma
 
 1. Create `/top/dir/somewhere/reinvent\_plugins/components` where `/top/dir/somewhere` is a convenient location for you.
 1. Do **not** place a `__init__.py` in either `reinvent_plugins` or `components` as this would break the mechanism.  It is fine to create normal packages within `components` as long as you import those correctly.
-1. Place a file whose name starts with `comp_*` into `reinvent_plugins/components`.   Files with different names will be ignored i.e. not imported. The directory will be searched recursively so structure your code as needed but directory/package names must be unique.
+1. Place a file whose name starts with `comp_*` into `reinvent_plugins/components` or subdirectories.   Files with different names will be ignored i.e. not imported. The directory will be searched recursively so structure your code as needed but directory/package names must be unique.
 1. Tag the scoring component class(es) in that file with the @add\_tag decorator.  More than one component class can be added to the same *comp\_* file. See existing code.
 1. Tag at most one dataclass for parameters in the same file, see existing code.  This is optional.
 1. Set or add `/top/dir/somewhere` to the `PYTHONPATH` environment variable or use any other mechanism to extend `sys.path`.
 1. The scoring component should now automatically be picked up by REINVENT.
+
+Ensure that the component can be important. The log file will write out an error if not.  Check directly if import is possible:
+
+```Python
+from reinvent_plugins.components import comp_myscorer
+```
 
 
 Unit and Integration Tests 
